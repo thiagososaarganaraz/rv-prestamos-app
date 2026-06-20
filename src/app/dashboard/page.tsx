@@ -6,6 +6,7 @@ import { DashboardClient } from '@/components/dashboard-client'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { DashboardFinanciero } from '@/components/dashboards/dashboard-financiero'
 import { DashboardRiesgo } from '@/components/dashboards/dashboard-riesgo'
+import { DashboardClientes } from '@/components/dashboards/dashboard-clientes'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -30,7 +31,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Pestañas Principales */}
       <Tabs defaultValue="operaciones" className="w-full flex flex-col items-center">
         
         <div className="w-full max-w-lg px-4 pt-4">
@@ -40,7 +40,6 @@ export default async function DashboardPage() {
           </TabsList>
         </div>
 
-        {/* Panel 1: Lista Operativa Diaria */}
         <TabsContent value="operaciones" className="w-full min-w-0 m-0 focus-visible:outline-none">
           <DashboardClient
             prestamos={prestamos}
@@ -51,7 +50,6 @@ export default async function DashboardPage() {
           />
         </TabsContent>
 
-        {/* Panel 2: Estadísticas con Sub-Pestañas */}
         <TabsContent value="estadisticas" className="w-full min-w-0 m-0 focus-visible:outline-none">
           <main className="w-full max-w-lg mx-auto px-4 py-4 pb-28">
             
@@ -71,21 +69,13 @@ export default async function DashboardPage() {
               </TabsContent>
 
               <TabsContent value="clientes" className="min-w-0 focus-visible:outline-none">
-                <div className="flex flex-col items-center justify-center py-20 text-center gap-2 border-2 border-dashed border-border rounded-xl">
-                  <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center">
-                    <span className="text-xl">📊</span>
-                  </div>
-                  <p className="text-base font-medium text-foreground">Comportamiento de Clientes</p>
-                  <p className="text-sm text-muted-foreground px-6">
-                    Módulo en construcción. Aquí veremos el Lifetime Value (LTV) y tasa de repetición.
-                  </p>
-                </div>
+                {/* ACÁ METEMOS EL COMPONENTE NUEVO */}
+                <DashboardClientes prestamos={prestamos} clientes={clientes} />
               </TabsContent>
             </Tabs>
 
           </main>
         </TabsContent>
-
       </Tabs>
     </div>
   )
