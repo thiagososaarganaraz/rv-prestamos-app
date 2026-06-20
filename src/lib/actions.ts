@@ -225,3 +225,29 @@ export async function cerrarSesion() {
   await supabase.auth.signOut()
   revalidatePath('/', 'layout')
 }
+
+// ─── Tasas de Interés ───────────────────────────────────────────────────────────────
+
+export async function setNuevaTasa(tasa: number) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('No autorizado')
+
+  await supabase.from('configuracion_interes').insert({
+    tasa_porcentaje: tasa,
+    user_id: user.id
+  })
+  revalidatePath('/ajustes')
+}
+
+export async function getTasaVigente() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('configuracion_interes')
+    .select('tasa_porcentaje')
+    .order('fecha_inicio', { ascending: false })
+    .limit(1)
+    .single()
+    
+  return data?.tasa_porcentaje ?? 0
+}
