@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, useEffect } from 'react'
-import { Prestamo } from '@/lib/types'
+import { Prestamo, Cliente } from '@/lib/types'
 import {
   getStatusPrestamo,
   formatCurrency,
@@ -13,7 +13,9 @@ import {
 import { MarcarPagadoModal } from '@/components/marcar-pagado-modal'
 import { PrestamoForm } from '@/components/prestamo-form'
 import { eliminarPrestamo } from '@/lib/actions'
-import { Cliente } from '@/lib/types'
+import { CheckCircle2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,15 +51,16 @@ export function PrestamoCard({ prestamo, clientes, showCliente = false }: Presta
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
 
-  // Defer date-dependent status to client only to avoid SSR/client mismatch
   const [status, setStatus] = useState<StatusInfo>({
     label: prestamo.estado === 'pagado' ? 'Pagado' : '...',
     color: prestamo.estado === 'pagado' ? 'verde' : 'amarillo',
     diasRestantes: 0,
   })
+
   useEffect(() => {
     setStatus(getStatusPrestamo(prestamo))
   }, [prestamo])
+
   const clienteNombre =
     prestamo.clientes?.nombre ??
     clientes.find((c) => c.id === prestamo.cliente_id)?.nombre ??
@@ -69,9 +72,17 @@ export function PrestamoCard({ prestamo, clientes, showCliente = false }: Presta
     })
   }
 
+  // Estilos dinámicos para resaltar préstamos vencidos
+  const isVencido = prestamo.estado === 'pendiente' && status.color === 'rojo'
+
   return (
     <>
-      <div className="bg-card rounded-xl border border-border p-4 space-y-3">
+      <div 
+        className={cn(
+          "bg-card rounded-xl border p-4 space-y-3 transition-colors",
+          isVencido ? "border-[var(--status-vencido)]/40 shadow-sm" : "border-border"
+        )}
+      >
         {/* Header row */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
@@ -98,11 +109,6 @@ export function PrestamoCard({ prestamo, clientes, showCliente = false }: Presta
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {prestamo.estado === 'pendiente' && (
-                  <DropdownMenuItem onClick={() => setPagadoOpen(true)}>
-                    Marcar pagado
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuItem onClick={() => setEditOpen(true)}>Editar</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -144,6 +150,25 @@ export function PrestamoCard({ prestamo, clientes, showCliente = false }: Presta
           <p className="text-sm text-muted-foreground border-t border-border pt-2">
             {prestamo.notas}
           </p>
+        )}
+
+        {/* CTA Principal para Registrar Pago */}
+        {prestamo.estado === 'pendiente' && (
+          <div className="pt-2">
+            <Button
+              className={cn(
+                "w-full font-semibold shadow-none transition-all active:scale-[0.98]",
+                isVencido 
+                  ? "bg-[var(--status-vencido)] hover:bg-[var(--status-vencido)]/90 text-white" 
+                  : ""
+              )}
+              variant={isVencido ? 'default' : 'secondary'}
+              onClick={() => setPagadoOpen(true)}
+            >
+              <CheckCircle2 className="w-4 h-4 mr-2 opacity-80" />
+              {isVencido ? 'Registrar cobro atrasado' : 'Marcar como pagado'}
+            </Button>
+          </div>
         )}
       </div>
 

@@ -155,7 +155,7 @@ export function DashboardRiesgo({ prestamos, clientes }: DashboardRiesgoProps) {
         {/* Bar Chart - Calendario de Vencimientos */}
         <Card className="overflow-hidden">
           <CardHeader>
-            <CardTitle className="text-base">Flujo de Vencimientos a 30 días</CardTitle>
+            <CardTitle className="text-base">Próximos a vencer (30 días)</CardTitle>
           </CardHeader>
           <CardContent className="px-2 sm:px-6">
             <ChartContainer config={chartConfig} className="h-64 w-full">

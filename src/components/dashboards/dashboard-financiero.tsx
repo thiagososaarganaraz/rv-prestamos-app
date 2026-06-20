@@ -104,7 +104,7 @@ export function DashboardFinanciero({ prestamos }: DashboardFinancieroProps) {
         <Card className="py-4 shadow-sm border-border bg-card">
           <CardHeader className="p-0 px-3 pb-1">
             <CardTitle className="text-xs font-semibold text-muted-foreground tracking-tight leading-none">
-              Total Colocado
+              Total Recaudado
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0 px-3">
@@ -118,7 +118,7 @@ export function DashboardFinanciero({ prestamos }: DashboardFinancieroProps) {
         <Card className="py-4 shadow-sm border-border bg-card">
           <CardHeader className="p-0 px-3 pb-1">
             <CardTitle className="text-xs font-semibold text-muted-foreground tracking-tight leading-none">
-              Ganancias
+              Capital Recuperado
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0 px-3">
