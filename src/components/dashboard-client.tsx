@@ -8,9 +8,7 @@ import { ClienteRow } from '@/components/cliente-row'
 import { PrestamoForm } from '@/components/prestamo-form'
 import { cerrarSesion } from '@/lib/actions'
 import { Input } from '@/components/ui/input'
-import { Link, LogOut, Search, Settings, User, X } from 'lucide-react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/dropdown-menu'
-import { Button } from './ui/button'
+import { LogOut, Search, X } from 'lucide-react'
 
 type Vista = 'prestamos' | 'clientes'
 type Filtro = 'todos' | 'proximos' | 'vencidos' | 'pagados'
@@ -99,35 +97,17 @@ export function DashboardClient({
                 {alertasCount > 99 ? '99+' : alertasCount}
               </span>
             )}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="w-9 h-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
-                  <User className="w-4 h-4" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel className="text-xs text-muted-foreground">{userEmail}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/ajustes" className="flex items-center cursor-pointer">
-                    <Settings className="w-4 h-4 mr-2" />
-                    Configurar intereses
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <form action={cerrarSesion}>
-                  <DropdownMenuItem asChild>
-                    <button type="submit" className="w-full text-destructive focus:text-destructive cursor-pointer">
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Cerrar sesión
-                    </button>
-                  </DropdownMenuItem>
-                </form>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <form action={cerrarSesion}>
+              <button
+                type="submit"
+                className="w-9 h-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                title="Cerrar sesión"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </form>    
           </div>
         </div>
-
         {/* Vista tabs */}
         <div className="flex gap-1 pb-3">
           <button
