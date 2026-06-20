@@ -1,0 +1,186 @@
+{
+  "node": {
+    "0028fd2265af3e0f20c31bd5515e094362e9bb8297": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getPrestamos",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "getPrestamos"
+    },
+    "0064b7f868b1b26ac9e952c6c93891a69df096d679": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getClientes",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "getClientes"
+    },
+    "009a57ce2087dd0efe8d2e9331d2621ead549da0ea": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "cerrarSesion",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "action-browser"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "cerrarSesion"
+    },
+    "4004f45593f616e1f3fc9ca6cfb2cb98bd57f7f24c": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getPrestamosPorCliente",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "getPrestamosPorCliente"
+    },
+    "4010c00ee6be82e1e2ca00cc42f4540ad187f84c51": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getClienteConPrestamos",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "getClienteConPrestamos"
+    },
+    "4010fdfdefc022a55d511e1f5ea76c0b0591de71f6": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "eliminarCliente",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "eliminarCliente"
+    },
+    "409ca2e4ffff8c86250b37f3386cf36fb0c0753d56": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "crearCliente",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "action-browser"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "crearCliente"
+    },
+    "40ebceaddc50b43bd571943ccab1d22490e5e6d9e3": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "crearPrestamo",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "action-browser"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "crearPrestamo"
+    },
+    "605f8f45901cfa4f65ab65432077bb5fd25f1a4e46": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "actualizarCliente",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "actualizarCliente"
+    },
+    "6097aac28e29a11b0f442410e1525aff770f5b23dd": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "actualizarPrestamo",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "action-browser"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "actualizarPrestamo"
+    },
+    "60ebf1b4fe0f7c9985bc06702b1c9046b56288ddaa": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "eliminarPrestamo",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "action-browser"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "eliminarPrestamo"
+    },
+    "70cb6ceca7a7991ade1b843dba01f35faaf722d383": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/lib/actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "marcarPrestamoPagado",
+          "filename": "lib/actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "action-browser"
+      },
+      "filename": "lib/actions.ts",
+      "exportedName": "marcarPrestamoPagado"
+    }
+  },
+  "edge": {},
+  "encryptionKey": "nR8lKW2kGgvPIeHKjcoEZ0MEYAkrosvGiT7qQ8BQKys="
+}
