@@ -12,7 +12,9 @@ interface DashboardFinancieroProps {
   prestamos: Prestamo[]
 }
 
-// Subcomponente interactivo para contraer/expandir montos grandes
+// Variable centralizada de interés
+const INTERES_PORCENTAJE = 0.40 // 40%
+
 function ExpandableCurrency({ amount }: { amount: number }) {
   const [expanded, setExpanded] = useState(false)
 
@@ -37,16 +39,17 @@ function ExpandableCurrency({ amount }: { amount: number }) {
 }
 
 export function DashboardFinanciero({ prestamos }: DashboardFinancieroProps) {
-  const { capitalColocado, totalRecaudado, prestamosActivos, carteraRiesgo, historicoRecaudacion } = useMemo(() => {
+  const { capitalColocado, totalGanancias, prestamosActivos, carteraRiesgo, historicoGanancias } = useMemo(() => {
     const capitalColocado = prestamos
       .filter((p) => p.estado === 'pendiente')
       .reduce((sum, p) => sum + p.monto, 0)
 
-    const totalRecaudado = prestamos
-      .filter((p) => p.estado === 'pagado')
-      .reduce((sum, p) => sum + p.monto, 0)
-
     const prestamosActivos = prestamos.filter((p) => p.estado === 'pendiente').length
+
+    // Ganancias = Suma de (monto * interés) de los préstamos pagados
+    const totalGanancias = prestamos
+      .filter((p) => p.estado === 'pagado')
+      .reduce((sum, p) => sum + (p.monto * INTERES_PORCENTAJE), 0)
 
     const riesgoMap: Record<string, number> = { verde: 0, amarillo: 0, rojo: 0 }
     prestamos
@@ -62,15 +65,15 @@ export function DashboardFinanciero({ prestamos }: DashboardFinancieroProps) {
       { name: 'Alto Riesgo', value: riesgoMap.rojo, color: 'var(--status-vencido)' },
     ].filter((item) => item.value > 0)
 
-    const recaudacionPorMes: Record<string, number> = {}
+    const gananciasPorMes: Record<string, number> = {}
     prestamos
       .filter((p) => p.estado === 'pagado' && p.fecha_pago)
       .forEach((p) => {
         const mesAño = format(parseISO(p.fecha_pago!), 'MMM yyyy')
-        recaudacionPorMes[mesAño] = (recaudacionPorMes[mesAño] || 0) + p.monto
+        gananciasPorMes[mesAño] = (gananciasPorMes[mesAño] || 0) + (p.monto * INTERES_PORCENTAJE)
       })
 
-    const historicoRecaudacion = Object.entries(recaudacionPorMes)
+    const historicoGanancias = Object.entries(gananciasPorMes)
       .sort(([fechaA], [fechaB]) => {
         const dateA = parseISO(fechaA)
         const dateB = parseISO(fechaB)
@@ -83,28 +86,27 @@ export function DashboardFinanciero({ prestamos }: DashboardFinancieroProps) {
 
     return {
       capitalColocado,
-      totalRecaudado,
+      totalGanancias,
       prestamosActivos,
       carteraRiesgo,
-      historicoRecaudacion,
+      historicoGanancias,
     }
   }, [prestamos])
 
   const chartConfig = {
     monto: {
-      label: 'Recaudación',
+      label: 'Ganancias',
       color: 'var(--primary)',
     },
   }
 
   return (
     <div className="space-y-6">
-      {/* KPIs Destacados */}
       <div className="grid grid-cols-3 gap-2 px-1">
         <Card className="py-4 shadow-sm border-border bg-card">
           <CardHeader className="p-0 px-3 pb-1">
             <CardTitle className="text-xs font-semibold text-muted-foreground tracking-tight leading-none">
-              Total Recaudado
+              Total Colocado
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0 px-3">
@@ -118,13 +120,13 @@ export function DashboardFinanciero({ prestamos }: DashboardFinancieroProps) {
         <Card className="py-4 shadow-sm border-border bg-card">
           <CardHeader className="p-0 px-3 pb-1">
             <CardTitle className="text-xs font-semibold text-muted-foreground tracking-tight leading-none">
-              Capital Recuperado
+              Ganancias
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0 px-3">
-            <ExpandableCurrency amount={totalRecaudado} />
+            <ExpandableCurrency amount={totalGanancias} />
             <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 font-medium truncate">
-              Ingresado
+              Margen bruto
             </p>
           </CardContent>
         </Card>
@@ -146,21 +148,16 @@ export function DashboardFinanciero({ prestamos }: DashboardFinancieroProps) {
         </Card>
       </div>
 
-      {/* Gráficos */}
       <div className="grid grid-cols-1 gap-6">
-        {/* Area Chart - Histórico de Recaudación */}
-        {historicoRecaudacion.length > 0 && (
+        {historicoGanancias.length > 0 && (
           <Card className="overflow-hidden">
             <CardHeader>
-              <CardTitle className="text-base">Histórico de Recaudación</CardTitle>
+              <CardTitle className="text-base">Histórico de Ganancias</CardTitle>
             </CardHeader>
             <CardContent className="px-2 sm:px-6">
               <ChartContainer config={chartConfig} className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart 
-                    data={historicoRecaudacion} 
-                    margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
-                  >
+                  <AreaChart data={historicoGanancias} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorMonto" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
@@ -168,46 +165,17 @@ export function DashboardFinanciero({ prestamos }: DashboardFinancieroProps) {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                    <XAxis
-                      dataKey="mes"
-                      stroke="var(--muted-foreground)"
-                      style={{ fontSize: '0.75rem' }}
-                      axisLine={false}
-                      tickLine={false}
-                      tickMargin={10}
-                    />
+                    <XAxis dataKey="mes" stroke="var(--muted-foreground)" style={{ fontSize: '0.75rem' }} axisLine={false} tickLine={false} tickMargin={10} />
                     <YAxis
                       stroke="var(--muted-foreground)"
                       style={{ fontSize: '0.75rem' }}
-                      tickFormatter={(value) => 
-                        new Intl.NumberFormat('es-AR', { 
-                          notation: 'compact', 
-                          compactDisplay: 'short',
-                          maximumFractionDigits: 1,
-                          style: 'currency',
-                          currency: 'ARS'
-                        }).format(value)
-                      }
+                      tickFormatter={(value) => new Intl.NumberFormat('es-AR', { notation: 'compact', compactDisplay: 'short', maximumFractionDigits: 1, style: 'currency', currency: 'ARS' }).format(value)}
                       axisLine={false}
                       tickLine={false}
-                      width={65} /* Ancho incrementado para acomodar $XX,X M sin recortes */
+                      width={65}
                     />
-                    <Tooltip
-                      formatter={(value) => formatCurrency(value as number)}
-                      contentStyle={{
-                        backgroundColor: 'var(--background)',
-                        border: '1px solid var(--border)',
-                        borderRadius: '0.5rem',
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="monto"
-                      stroke="var(--primary)"
-                      strokeWidth={2}
-                      fill="url(#colorMonto)"
-                      isAnimationActive={true}
-                    />
+                    <Tooltip formatter={(value) => formatCurrency(value as number)} contentStyle={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', borderRadius: '0.5rem' }} />
+                    <Area type="monotone" dataKey="monto" stroke="var(--primary)" strokeWidth={2} fill="url(#colorMonto)" isAnimationActive={true} />
                   </AreaChart>
                 </ResponsiveContainer>
               </ChartContainer>
@@ -215,7 +183,6 @@ export function DashboardFinanciero({ prestamos }: DashboardFinancieroProps) {
           </Card>
         )}
 
-        {/* Donut Chart - Cartera por Riesgo */}
         {carteraRiesgo.length > 0 && (
           <Card>
             <CardHeader>
@@ -225,27 +192,10 @@ export function DashboardFinanciero({ prestamos }: DashboardFinancieroProps) {
               <ChartContainer config={chartConfig} className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie
-                      data={carteraRiesgo}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {carteraRiesgo.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
+                    <Pie data={carteraRiesgo} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={2} dataKey="value">
+                      {carteraRiesgo.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                     </Pie>
-                    <Tooltip
-                      formatter={(value) => formatCurrency(value as number)}
-                      contentStyle={{
-                        backgroundColor: 'var(--background)',
-                        border: '1px solid var(--border)',
-                        borderRadius: '0.5rem',
-                      }}
-                    />
+                    <Tooltip formatter={(value) => formatCurrency(value as number)} contentStyle={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)', borderRadius: '0.5rem' }} />
                   </PieChart>
                 </ResponsiveContainer>
               </ChartContainer>
@@ -264,15 +214,6 @@ export function DashboardFinanciero({ prestamos }: DashboardFinancieroProps) {
           </Card>
         )}
       </div>
-
-      {/* Estado vacío */}
-      {prestamos.length === 0 && (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            No hay préstamos registrados aún. Comienza registrando tu primer préstamo.
-          </CardContent>
-        </Card>
-      )}
     </div>
   )
 }
