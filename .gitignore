@@ -1,4 +1,6 @@
-.vercel
+# Archivos de build y caché de Next.js
+.next/
 out/
+.vercel
 .env*
-node_modules
+node_modules/

@@ -28,18 +28,19 @@ export default async function DashboardPage() {
   }).length
 
   return (
-    <Tabs defaultValue="operaciones" className="min-h-screen bg-background flex flex-col">
-      <div className="max-w-lg mx-auto w-full">
-        <TabsList className="w-full px-4 pt-4">
-          <TabsTrigger value="operaciones" className="w-1/2">
-            Operaciones
-          </TabsTrigger>
-          <TabsTrigger value="analiticas" className="w-1/2">
-            Analíticas
-          </TabsTrigger>
-        </TabsList>
+    <div className="min-h-screen bg-background">
+      <Tabs defaultValue="operaciones" className="w-full flex flex-col items-center">
+        
+        {/* Contenedor de los botones de Pestañas */}
+        <div className="w-full max-w-lg px-4 pt-4">
+          <TabsList className="w-full grid grid-cols-2">
+            <TabsTrigger value="operaciones">Operaciones</TabsTrigger>
+            <TabsTrigger value="analiticas">Estadísticas</TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value="operaciones">
+        {/* Pestaña: Operaciones */}
+        <TabsContent value="operaciones" className="w-full min-w-0 m-0 focus-visible:outline-none">
           <DashboardClient
             prestamos={prestamos}
             clientes={clientes}
@@ -49,14 +50,14 @@ export default async function DashboardPage() {
           />
         </TabsContent>
 
-        <TabsContent value="analiticas">
-          <main className="min-h-screen px-4 pb-28">
-            <div className="max-w-lg mx-auto w-full py-6">
-              <DashboardFinanciero prestamos={prestamos} />
-            </div>
+        {/* Pestaña: Analíticas */}
+        <TabsContent value="analiticas" className="w-full min-w-0 m-0 focus-visible:outline-none">
+          <main className="w-full max-w-lg mx-auto px-4 py-6 pb-28">
+            <DashboardFinanciero prestamos={prestamos} />
           </main>
         </TabsContent>
-      </div>
-    </Tabs>
+
+      </Tabs>
+    </div>
   )
 }
