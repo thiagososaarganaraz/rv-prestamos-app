@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getPrestamos, getClientes } from '@/lib/actions'
 import { getStatusPrestamo } from '@/lib/utils-clientes'
-import { DashboardClient } from '@/components/dashboard-client'
+import { Home } from '@/components/home'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { DashboardFinanciero } from '@/components/dashboards/dashboard-financiero'
 import { DashboardRiesgo } from '@/components/dashboards/dashboard-riesgo'
@@ -41,7 +41,7 @@ export default async function DashboardPage() {
         </div>
 
         <TabsContent value="operaciones" className="w-full min-w-0 m-0 focus-visible:outline-none">
-          <DashboardClient
+          <Home
             prestamos={prestamos}
             clientes={clientes}
             proximosCount={proximosCount}

@@ -23,7 +23,7 @@ interface DashboardClientProps {
   userEmail: string
 }
 
-export function DashboardClient({
+export function Home({
   prestamos,
   clientes,
   proximosCount,
