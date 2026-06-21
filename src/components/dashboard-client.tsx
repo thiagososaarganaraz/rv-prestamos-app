@@ -10,6 +10,7 @@ import { cerrarSesion } from '@/lib/actions'
 import { Input } from '@/components/ui/input'
 import { LogOut, Search, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { DatabaseIndicator } from './database-indicator'
 
 type Vista = 'prestamos' | 'clientes'
 type Filtro = 'todos' | 'proximos' | 'vencidos' | 'pagados'
@@ -98,6 +99,9 @@ export function DashboardClient({
                 {alertasCount > 99 ? '99+' : alertasCount}
               </span>
             )}
+            <div className="flex items-center gap-4">
+              <DatabaseIndicator />
+            </div>
             <form action={cerrarSesion}>
               <button
                 type="submit"
