@@ -1,3 +1,4 @@
+// Dashboard Clientes
 'use client'
 
 import { useMemo } from 'react'
@@ -9,9 +10,10 @@ import { Prestamo, Cliente } from '@/lib/types'
 interface DashboardClientesProps {
   prestamos: Prestamo[]
   clientes: Cliente[]
+  tasaVigente: number
 }
 
-export function DashboardClientes({ prestamos, clientes }: DashboardClientesProps) {
+export function DashboardClientes({ prestamos, clientes, tasaVigente }: DashboardClientesProps) {
   const { 
     totalClientes, 
     tasaRecurrencia, 
