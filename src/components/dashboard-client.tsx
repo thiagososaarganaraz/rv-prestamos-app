@@ -9,6 +9,7 @@ import { PrestamoForm } from '@/components/prestamo-form'
 import { cerrarSesion } from '@/lib/actions'
 import { Input } from '@/components/ui/input'
 import { LogOut, Search, X } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 type Vista = 'prestamos' | 'clientes'
 type Filtro = 'todos' | 'proximos' | 'vencidos' | 'pagados'
@@ -105,10 +106,9 @@ export function DashboardClient({
               >
                 <LogOut className="w-4 h-4" />
               </button>
-            </form>
+            </form>    
           </div>
         </div>
-
         {/* Vista tabs */}
         <div className="flex gap-1 pb-3">
           <button
@@ -192,21 +192,24 @@ export function DashboardClient({
         {vista === 'prestamos' && (
           <>
             {filtro === 'todos' && !busqueda && (
-              <div className="grid grid-cols-3 gap-2 mb-1">
-                <div className="bg-card rounded-xl border border-border p-3 text-center">
-                  <p className="text-2xl font-bold text-foreground">
-                    {prestamos.filter((p) => p.estado === 'pendiente').length}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Activos</p>
-                </div>
-                <div className="bg-[var(--status-vencido-bg)] rounded-xl border border-[var(--status-vencido)]/20 p-3 text-center">
-                  <p className="text-2xl font-bold text-[var(--status-vencido)]">{vencidosCount}</p>
-                  <p className="text-xs text-[var(--status-vencido)] mt-0.5">Vencidos</p>
-                </div>
-                <div className="bg-[var(--status-pronto-bg)] rounded-xl border border-[var(--status-pronto)]/20 p-3 text-center">
-                  <p className="text-2xl font-bold text-[var(--status-pronto)]">{proximosCount}</p>
-                  <p className="text-xs text-[var(--status-pronto)] mt-0.5">Esta semana</p>
-                </div>
+              <div className="flex gap-2 mb-4 px-1">
+                {[
+                  { label: 'Activos', count: prestamos.filter((p) => p.estado === 'pendiente').length, color: 'text-foreground' },
+                  { label: 'Vencidos', count: vencidosCount, color: 'text-[var(--status-vencido)]' },
+                  { label: 'Esta semana', count: proximosCount, color: 'text-[var(--status-pronto)]' },
+                ].map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="flex-1 flex items-center justify-between px-3 py-2 bg-secondary/50 rounded-lg border border-border/50"
+                  >
+                    <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                      {stat.label}
+                    </span>
+                    <span className={cn("text-base font-bold", stat.color)}>
+                      {stat.count}
+                    </span>
+                  </div>
+                ))}
               </div>
             )}
 

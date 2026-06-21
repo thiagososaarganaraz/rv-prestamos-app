@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, useEffect } from 'react'
-import { Prestamo } from '@/lib/types'
+import { Prestamo, Cliente } from '@/lib/types'
 import {
   getStatusPrestamo,
   formatCurrency,
@@ -13,7 +13,9 @@ import {
 import { MarcarPagadoModal } from '@/components/marcar-pagado-modal'
 import { PrestamoForm } from '@/components/prestamo-form'
 import { eliminarPrestamo } from '@/lib/actions'
-import { Cliente } from '@/lib/types'
+import { CheckCircle2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +33,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { MoreVertical, Calendar, Info } from 'lucide-react'
 
 interface PrestamoCardProps {
   prestamo: Prestamo
@@ -49,15 +52,16 @@ export function PrestamoCard({ prestamo, clientes, showCliente = false }: Presta
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
 
-  // Defer date-dependent status to client only to avoid SSR/client mismatch
   const [status, setStatus] = useState<StatusInfo>({
     label: prestamo.estado === 'pagado' ? 'Pagado' : '...',
     color: prestamo.estado === 'pagado' ? 'verde' : 'amarillo',
     diasRestantes: 0,
   })
+
   useEffect(() => {
     setStatus(getStatusPrestamo(prestamo))
   }, [prestamo])
+
   const clienteNombre =
     prestamo.clientes?.nombre ??
     clientes.find((c) => c.id === prestamo.cliente_id)?.nombre ??
@@ -69,81 +73,66 @@ export function PrestamoCard({ prestamo, clientes, showCliente = false }: Presta
     })
   }
 
+  // Estilos dinámicos para resaltar préstamos vencidos
+  const isVencido = prestamo.estado === 'pendiente' && status.color === 'rojo'
+
   return (
     <>
-      <div className="bg-card rounded-xl border border-border p-4 space-y-3">
-        {/* Header row */}
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
-            {showCliente && (
-              <p className="text-base font-semibold text-foreground truncate">{clienteNombre}</p>
-            )}
-            <p className="text-2xl font-bold text-foreground">{formatCurrency(prestamo.monto)}</p>
+      <div className={cn(
+        "bg-card rounded-2xl border p-4 space-y-4 transition-all hover:shadow-sm",
+        isVencido ? "border-[var(--status-vencido)]/30 bg-[var(--status-vencido-bg)]/20" : "border-border"
+      )}>
+        {/* Fila superior: Cliente y Estado */}
+        <div className="flex justify-between items-start">
+          <div>
+            {showCliente && <p className="text-sm font-medium text-muted-foreground">{clienteNombre}</p>}
+            <p className="text-3xl font-extrabold tracking-tight">{formatCurrency(prestamo.monto)}</p>
           </div>
           <div className="flex items-center gap-2">
-            <span
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusBadgeClasses(status.color)}`}
-            >
-              <span className={`w-1.5 h-1.5 rounded-full ${statusDotClasses(status.color)}`} />
+            <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider", statusBadgeClasses(status.color))}>
               {status.label}
             </span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                    <circle cx="8" cy="3" r="1.5" />
-                    <circle cx="8" cy="8" r="1.5" />
-                    <circle cx="8" cy="13" r="1.5" />
-                  </svg>
-                </button>
+                <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="w-4 h-4" /></Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {prestamo.estado === 'pendiente' && (
-                  <DropdownMenuItem onClick={() => setPagadoOpen(true)}>
-                    Marcar pagado
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuItem onClick={() => setEditOpen(true)}>Editar</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onClick={() => setDeleteOpen(true)}
-                >
-                  Eliminar
-                </DropdownMenuItem>
+                <DropdownMenuItem className="text-destructive" onClick={() => setDeleteOpen(true)}>Eliminar</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </div>
 
-        {/* Details grid */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
-          <div>
-            <span className="text-muted-foreground">Fecha</span>
-            <p className="font-medium">{formatDate(prestamo.fecha_prestamo)}</p>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Vencimiento</span>
-            <p className="font-medium">{formatDate(prestamo.fecha_vencimiento)}</p>
+        {/* Fila de info técnica: Compacta y clara */}
+        <div className="flex items-center gap-4 text-xs text-muted-foreground bg-secondary/30 p-2 rounded-lg">
+          <div className="flex items-center gap-1.5">
+            <Calendar className="w-3.5 h-3.5" />
+            <span>Vence: <span className="font-semibold text-foreground">{formatDate(prestamo.fecha_vencimiento)}</span></span>
           </div>
           {prestamo.metodo_pago && (
-            <div>
-              <span className="text-muted-foreground">Método</span>
-              <p className="font-medium">{METODO_LABEL[prestamo.metodo_pago]}</p>
-            </div>
-          )}
-          {prestamo.fecha_pago && (
-            <div>
-              <span className="text-muted-foreground">Pagado el</span>
-              <p className="font-medium">{formatDate(prestamo.fecha_pago)}</p>
-            </div>
+            <span className="capitalize border-l pl-4 border-border">{prestamo.metodo_pago}</span>
           )}
         </div>
 
+        {/* Notas (si existen) */}
         {prestamo.notas && (
-          <p className="text-sm text-muted-foreground border-t border-border pt-2">
-            {prestamo.notas}
-          </p>
+          <div className="flex gap-2 text-xs italic text-muted-foreground">
+            <Info className="w-3.5 h-3.5 shrink-0" />
+            <p>{prestamo.notas}</p>
+          </div>
+        )}
+
+        {/* CTA Principal */}
+        {prestamo.estado === 'pendiente' && (
+          <Button
+            className={cn("w-full shadow-md font-semibold", isVencido ? "bg-red-600 hover:bg-red-700" : "")}
+            onClick={() => setPagadoOpen(true)}
+          >
+            <CheckCircle2 className="w-4 h-4 mr-2" />
+            {isVencido ? 'Cobrar ahora' : 'Marcar pagado'}
+          </Button>
         )}
       </div>
 
