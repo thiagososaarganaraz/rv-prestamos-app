@@ -89,32 +89,6 @@ export function Home({
     <div className="min-h-screen bg-background flex flex-col max-w-lg mx-auto">
       {/* Header */}
       <header className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b border-border px-4">
-        <div className="flex items-center justify-between py-3">
-          <div>
-            <h1 className="text-xl font-bold text-foreground">RV Prestamos</h1>
-            <p className="text-xs text-muted-foreground truncate max-w-[200px]">{userEmail}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            {alertasCount > 0 && (
-              <span className="inline-flex items-center justify-center min-w-[1.5rem] h-6 px-1.5 rounded-full bg-destructive text-destructive-foreground text-xs font-bold">
-                {alertasCount > 99 ? '99+' : alertasCount}
-              </span>
-            )}
-            <div className="flex items-center gap-4">
-              <DatabaseIndicator />
-              <UserMenu />
-            </div>
-            {/* <form action={cerrarSesion}>
-              <button
-                type="submit"
-                className="w-9 h-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                title="Cerrar sesión"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </form>     */}
-          </div>
-        </div>
         {/* Vista tabs */}
         <div className="flex gap-1 pb-3">
           <button
