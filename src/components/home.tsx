@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { LogOut, Search, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DatabaseIndicator } from './database-indicator'
+import { UserMenu } from './menu/user-menu'
 
 type Vista = 'prestamos' | 'clientes'
 type Filtro = 'todos' | 'proximos' | 'vencidos' | 'pagados'
@@ -101,8 +102,9 @@ export function Home({
             )}
             <div className="flex items-center gap-4">
               <DatabaseIndicator />
+              <UserMenu />
             </div>
-            <form action={cerrarSesion}>
+            {/* <form action={cerrarSesion}>
               <button
                 type="submit"
                 className="w-9 h-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
@@ -110,7 +112,7 @@ export function Home({
               >
                 <LogOut className="w-4 h-4" />
               </button>
-            </form>    
+            </form>     */}
           </div>
         </div>
         {/* Vista tabs */}

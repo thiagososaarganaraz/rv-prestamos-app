@@ -10,6 +10,8 @@ import { Spinner } from '@/components/ui/spinner'
 import { setNuevaTasa, getTasaVigente } from '@/lib/actions'
 import { toast } from '@/hooks/use-toast'
 import { formatDate } from '@/lib/utils-clientes'
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 
 export default function AjustesPage() {
   const [tasa, setTasa] = useState('')
@@ -40,6 +42,11 @@ export default function AjustesPage() {
 
   return (
     <main className="max-w-lg mx-auto p-4 pb-28 space-y-6">
+      <Button variant="ghost" size="icon" asChild>
+        <Link href="/dashboard">
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+      </Button>
       <h1 className="text-2xl font-bold">Ajustes</h1>
       
       {/* Configuración de Tasa */}

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getPrestamos, getClientes } from '@/lib/actions'
+import { getPrestamos, getClientes, getTasaVigente } from '@/lib/actions'
 import { getStatusPrestamo } from '@/lib/utils-clientes'
 import { Home } from '@/components/home'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -16,7 +16,7 @@ export default async function DashboardPage() {
 
   if (!user) redirect('/auth/login')
 
-  const [prestamos, clientes] = await Promise.all([getPrestamos(), getClientes()])
+  const [prestamos, clientes, tasaVigente] = await Promise.all([getPrestamos(), getClientes(), getTasaVigente()])
 
   const proximosCount = prestamos.filter((p) => {
     if (p.estado === 'pagado') return false
@@ -31,12 +31,12 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Tabs defaultValue="operaciones" className="w-full flex flex-col items-center">
+      <Tabs defaultValue="estadisticas" className="w-full flex flex-col items-center">
         
         <div className="w-full max-w-lg px-4 pt-4">
           <TabsList className="w-full grid grid-cols-2">
-            <TabsTrigger value="operaciones">Operaciones</TabsTrigger>
             <TabsTrigger value="estadisticas">Estadísticas</TabsTrigger>
+            <TabsTrigger value="operaciones">Operaciones</TabsTrigger>
           </TabsList>
         </div>
 
@@ -61,7 +61,7 @@ export default async function DashboardPage() {
               </TabsList>
 
               <TabsContent value="financiero" className="min-w-0 focus-visible:outline-none">
-                <DashboardFinanciero prestamos={prestamos} />
+                <DashboardFinanciero prestamos={prestamos} tasaVigente={tasaVigente} />
               </TabsContent>
 
               <TabsContent value="riesgo" className="min-w-0 focus-visible:outline-none">
@@ -69,8 +69,7 @@ export default async function DashboardPage() {
               </TabsContent>
 
               <TabsContent value="clientes" className="min-w-0 focus-visible:outline-none">
-                {/* ACÁ METEMOS EL COMPONENTE NUEVO */}
-                <DashboardClientes prestamos={prestamos} clientes={clientes} />
+                <DashboardClientes prestamos={prestamos} clientes={clientes} tasaVigente={tasaVigente} />
               </TabsContent>
             </Tabs>
 
