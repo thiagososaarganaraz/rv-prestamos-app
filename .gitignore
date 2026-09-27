@@ -5,3 +5,6 @@ out/
 .env*
 node_modules
 src/.next
+
+# Archivos de configuración de Tokensave
+.tokensave/

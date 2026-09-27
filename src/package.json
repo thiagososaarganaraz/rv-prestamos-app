@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test:features": "node --experimental-strip-types --test scripts/plan-flags.spec.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

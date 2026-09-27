@@ -22,6 +22,7 @@ interface DashboardClientProps {
   proximosCount: number
   vencidosCount: number
   userEmail: string
+  showDbIndicator?: boolean
 }
 
 export function Home({
@@ -30,6 +31,7 @@ export function Home({
   proximosCount,
   vencidosCount,
   userEmail,
+  showDbIndicator = false,
 }: DashboardClientProps) {
   const [vista, setVista] = useState<Vista>('prestamos')
   const [filtro, setFiltro] = useState<Filtro>('todos')
