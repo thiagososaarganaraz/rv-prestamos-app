@@ -52,7 +52,7 @@ export default function LoginPage() {
               <line x1="2" x2="22" y1="10" y2="10" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">RV Prestamos</h1>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Prestame</h1>
           <p className="text-muted-foreground mt-1 text-base">Control de pagos y cobros</p>
         </div>
 

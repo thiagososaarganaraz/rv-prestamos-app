@@ -75,7 +75,7 @@ export default async function DashboardPage() {
         <header className="w-full border-b bg-card">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between py-4">
             <div>
-              <h1 className="text-xl font-bold text-foreground">RV Prestamos</h1>
+              <h1 className="text-xl font-bold text-foreground">Prestame</h1>
               <p className="text-xs text-muted-foreground truncate max-w-[200px]">{userEmail}</p>
             </div>
             
