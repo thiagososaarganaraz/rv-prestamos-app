@@ -8,7 +8,7 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'RV Prestamos',
+  title: 'Prestame',
   description: 'Gestiona y recuerda los pagos próximos a vencer de tus clientes.',
   generator: 'v0.app',
   icons: {
