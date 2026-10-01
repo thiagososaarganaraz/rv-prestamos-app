@@ -108,7 +108,7 @@ export function MarcarPagadoModal({
           <div className="flex flex-col items-center justify-center py-8 text-center animate-in fade-in zoom-in duration-300">
             {modalState === 'success' ? (
               <>
-                <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
+                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mb-4">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
                 <h3 className="text-lg font-bold">¡Pago registrado!</h3>
@@ -116,7 +116,7 @@ export function MarcarPagadoModal({
               </>
             ) : (
               <>
-                <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
+                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mb-4">
                   <AlertCircle className="w-8 h-8" />
                 </div>
                 <h3 className="text-lg font-bold">Error</h3>
