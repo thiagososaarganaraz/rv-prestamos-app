@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition, useEffect, useRef } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
-import { crearCliente, crearPrestamo, actualizarPrestamo } from '@/lib/actions'
+import { crearCliente, crearPrestamo, actualizarPrestamo, getTasaVigente } from '@/lib/actions'
+import { calculateLoanAmounts, formatLoanCurrency, isValidInterestRate } from '@/lib/interest'
 import { Cliente, Prestamo, MetodoPago } from '@/lib/types'
 import { todayStr, oneMonthFromNow } from '@/lib/utils-clientes'
 
@@ -37,6 +38,7 @@ const defaultForm = () => ({
   nuevoNombre: '',
   nuevoTelefono: '',
   monto: '',
+  tasa_interes: '',
   fecha_prestamo: todayStr(),
   fecha_vencimiento: oneMonthFromNow(),
   metodo_pago: '' as MetodoPago | '',
@@ -55,18 +57,24 @@ export function PrestamoForm({
   const [form, setForm] = useState(defaultForm())
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const rateTouched = useRef(false)
+  const [rateNotice, setRateNotice] = useState<string | null>(null)
 
   const isEdit = !!prestamoEditar
 
   useEffect(() => {
+    let active = true
     if (open) {
       setError(null)
+      setRateNotice(null)
+      rateTouched.current = false
       if (prestamoEditar) {
         setForm({
           cliente_id: prestamoEditar.cliente_id,
           nuevoNombre: '',
           nuevoTelefono: '',
           monto: String(prestamoEditar.monto),
+          tasa_interes: String(prestamoEditar.tasa_interes),
           fecha_prestamo: prestamoEditar.fecha_prestamo,
           fecha_vencimiento: prestamoEditar.fecha_vencimiento,
           metodo_pago: prestamoEditar.metodo_pago ?? '',
@@ -78,11 +86,20 @@ export function PrestamoForm({
         setForm({ ...defaultForm(), cliente_id: clienteIdFijo ?? '' })
         setPaso(clienteIdFijo ? 'prestamo' : 'cliente')
         setCrearNuevoCliente(false)
+        getTasaVigente().then((rate) => {
+          if (active && !rateTouched.current) {
+            setForm((f) => ({ ...f, tasa_interes: String(rate) }))
+          }
+        }).catch(() => {
+          if (active) setRateNotice('No se pudo cargar la tasa de Ajustes. Ingresá el porcentaje para este préstamo.')
+        })
       }
     }
+    return () => { active = false }
   }, [open, prestamoEditar, clienteIdFijo])
 
   function set(key: keyof ReturnType<typeof defaultForm>, value: string) {
+    if (key === 'tasa_interes') rateTouched.current = true
     setForm((f) => ({ ...f, [key]: value }))
   }
 
@@ -100,8 +117,12 @@ export function PrestamoForm({
   }
 
   function handleSubmit() {
-    if (!form.monto || isNaN(Number(form.monto)) || Number(form.monto) <= 0) {
+    if (!form.monto || !Number.isFinite(Number(form.monto)) || Number(form.monto) <= 0) {
       setError('El monto debe ser un número positivo.')
+      return
+    }
+    if (!form.tasa_interes.trim() || !isValidInterestRate(Number(form.tasa_interes))) {
+      setError('La tasa de interés es obligatoria y debe ser un número no negativo con hasta dos decimales.')
       return
     }
     if (!form.fecha_vencimiento) {
@@ -125,6 +146,7 @@ export function PrestamoForm({
         const payload = {
           cliente_id: clienteId,
           monto: Number(form.monto),
+          tasa_interes: Number(form.tasa_interes),
           fecha_prestamo: form.fecha_prestamo,
           fecha_vencimiento: form.fecha_vencimiento,
           metodo_pago: (form.metodo_pago as MetodoPago) || null,
@@ -144,9 +166,15 @@ export function PrestamoForm({
     })
   }
 
+  const showAmounts = !!form.monto && Number.isFinite(Number(form.monto)) && Number(form.monto) > 0
+    && !!form.tasa_interes.trim() && isValidInterestRate(Number(form.tasa_interes))
+  const amounts = showAmounts
+    ? calculateLoanAmounts({ monto: Number(form.monto), tasa_interes: Number(form.tasa_interes) })
+    : null
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm mx-auto">
+      <DialogContent className="max-w-sm mx-auto max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold">
             {isEdit ? 'Editar préstamo' : 'Nuevo préstamo'}
@@ -230,7 +258,7 @@ export function PrestamoForm({
           {(paso === 'prestamo' || isEdit || !!clienteIdFijo) && (
             <>
               <div className="space-y-1.5">
-                <Label>Monto ($) *</Label>
+                <Label>Capital ($) *</Label>
                 <Input
                   type="number"
                   min="0"
@@ -241,6 +269,30 @@ export function PrestamoForm({
                   className="text-lg"
                 />
               </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="loan-interest-rate">Tasa de interés (%) *</Label>
+                <Input
+                  id="loan-interest-rate"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  required
+                  value={form.tasa_interes}
+                  onChange={(e) => set('tasa_interes', e.target.value)}
+                  placeholder="Ej.: 20"
+                />
+                <p className="text-xs text-muted-foreground">El porcentaje se aplica una sola vez sobre el capital.</p>
+                {rateNotice && <p role="status" className="text-xs text-muted-foreground">{rateNotice}</p>}
+              </div>
+
+              {amounts && (
+                <div className="rounded-lg bg-secondary/30 p-3 text-sm space-y-1" aria-live="polite">
+                  <p>Capital: {formatLoanCurrency(Number(form.monto))}</p>
+                  <p>Interés ({form.tasa_interes}%): {formatLoanCurrency(amounts.interest)}</p>
+                  <p className="font-semibold">Total: {formatLoanCurrency(amounts.total)}</p>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">

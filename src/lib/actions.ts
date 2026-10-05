@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { ClienteFormData, PrestamoFormData } from '@/lib/types'
+import { validateInterestRate } from '@/lib/interest'
 
 // ─── Clientes ────────────────────────────────────────────────────────────────
 
@@ -140,6 +141,7 @@ export async function getClienteConPrestamos(clienteId: string) {
 }
 
 export async function crearPrestamo(formData: PrestamoFormData) {
+  validateInterestRate(formData.tasa_interes)
   const supabase = await createClient()
   const {
     data: { user },
@@ -158,11 +160,20 @@ export async function crearPrestamo(formData: PrestamoFormData) {
 }
 
 export async function actualizarPrestamo(id: string, formData: Partial<PrestamoFormData>) {
+  if ('tasa_interes' in formData) validateInterestRate(formData.tasa_interes)
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) throw new Error('No autenticado')
+
+  const { data: existing, error: readError } = await supabase
+    .from('prestamos')
+    .select('cliente_id')
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .single()
+  if (readError) throw new Error(readError.message)
 
   const { error } = await supabase
     .from('prestamos')
@@ -172,6 +183,10 @@ export async function actualizarPrestamo(id: string, formData: Partial<PrestamoF
 
   if (error) throw new Error(error.message)
   revalidatePath('/dashboard', 'page')
+  revalidatePath(`/clientes/${existing.cliente_id}`, 'page')
+  if (formData.cliente_id && formData.cliente_id !== existing.cliente_id) {
+    revalidatePath(`/clientes/${formData.cliente_id}`, 'page')
+  }
 }
 
 export async function marcarPrestamoPagado(
@@ -189,6 +204,7 @@ export async function marcarPrestamoPagado(
     .from('prestamos')
     .select('cliente_id')
     .eq('id', id)
+    .eq('user_id', user.id)
     .single()
 
   const { error } = await supabase
@@ -229,25 +245,33 @@ export async function cerrarSesion() {
 // ─── Tasas de Interés ───────────────────────────────────────────────────────────────
 
 export async function setNuevaTasa(tasa: number) {
+  validateInterestRate(tasa)
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('No autorizado')
 
-  await supabase.from('configuracion_interes').insert({
+  const { error } = await supabase.from('configuracion_interes').insert({
     tasa_porcentaje: tasa,
     user_id: user.id
   })
+  if (error) throw new Error(error.message)
   revalidatePath('/ajustes')
 }
 
 export async function getTasaVigente() {
   const supabase = await createClient()
-  const { data } = await supabase
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('No autenticado')
+  const { data, error } = await supabase
     .from('configuracion_interes')
     .select('tasa_porcentaje')
+    .eq('user_id', user.id)
     .order('fecha_inicio', { ascending: false })
     .limit(1)
-    .single()
+    .maybeSingle()
     
-  return data?.tasa_porcentaje ?? 0
+  if (error) throw new Error(error.message)
+  const rate = data?.tasa_porcentaje ?? 0
+  validateInterestRate(rate)
+  return rate
 }

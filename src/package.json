@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test:features": "node --experimental-strip-types --test scripts/plan-flags.spec.ts"
+    "test:features": "node --experimental-strip-types --test scripts/plan-flags.spec.ts",
+    "test:interest": "node --experimental-strip-types --test scripts/interest.spec.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

@@ -2,8 +2,9 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getPrestamos, getClientes, getTasaVigente } from '@/lib/actions'
+import { getPrestamos, getClientes } from '@/lib/actions'
 import { getStatusPrestamo } from '@/lib/utils-clientes'
+import { calculateLoanAmounts } from '@/lib/interest'
 import { Home } from '@/components/home'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { WalletOverview } from '@/components/dashboards/wallet-overview'
@@ -44,24 +45,20 @@ export default async function DashboardPage() {
   const isPro = await isFeatureEnabled('analytics.dashboard', createServerContext(user.id, supabase))
 
   // Solo calcular métricas PRO si el usuario tiene el plan PRO
-  let tasaVigente = 0
   let capitalColocado = 0
   let gananciaProyectada = 0
   let proximosCobrosSemana = 0
 
   if (isPro) {
-    tasaVigente = await getTasaVigente()
-    const tasaDecimal = tasaVigente / 100
-
     const prestamosPendientes = prestamos.filter((p) => p.estado === 'pendiente')
 
     capitalColocado = prestamosPendientes.reduce((sum, p) => sum + p.monto, 0)
-    gananciaProyectada = prestamosPendientes.reduce((sum, p) => sum + (p.monto * tasaDecimal), 0)
+    gananciaProyectada = prestamosPendientes.reduce((sum, p) => sum + calculateLoanAmounts(p).interest, 0)
 
     proximosCobrosSemana = prestamosPendientes.reduce((sum, p) => {
       const s = getStatusPrestamo(p)
       if (s.diasRestantes >= 0 && s.diasRestantes <= 7) {
-        return sum + p.monto + (p.monto * tasaDecimal)
+        return sum + calculateLoanAmounts(p).total
       }
       return sum
     }, 0)
@@ -142,7 +139,7 @@ export default async function DashboardPage() {
                   </div>
 
                   <TabsContent value="financiero" className="min-w-0 focus-visible:outline-none">
-                    <DashboardFinanciero prestamos={prestamos} tasaVigente={tasaVigente} />
+                    <DashboardFinanciero prestamos={prestamos} />
                   </TabsContent>
 
                   <TabsContent value="riesgo" className="min-w-0 focus-visible:outline-none">
@@ -150,7 +147,7 @@ export default async function DashboardPage() {
                   </TabsContent>
 
                   <TabsContent value="clientes" className="min-w-0 focus-visible:outline-none">
-                    <DashboardClientes prestamos={prestamos} clientes={clientes} tasaVigente={tasaVigente} />
+                    <DashboardClientes prestamos={prestamos} clientes={clientes} />
                   </TabsContent>
                 </Tabs>
 

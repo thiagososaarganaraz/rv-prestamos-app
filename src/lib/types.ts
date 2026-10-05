@@ -14,6 +14,7 @@ export interface Prestamo {
   id: string
   cliente_id: string
   monto: number
+  tasa_interes: number
   fecha_prestamo: string
   fecha_vencimiento: string
   estado: EstadoPrestamo
@@ -32,6 +33,7 @@ export interface ClienteConPrestamos extends Cliente {
 export type PrestamoFormData = {
   cliente_id: string
   monto: number
+  tasa_interes: number
   fecha_prestamo: string
   fecha_vencimiento: string
   metodo_pago: MetodoPago | null

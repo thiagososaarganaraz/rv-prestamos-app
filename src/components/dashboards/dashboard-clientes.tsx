@@ -10,10 +10,9 @@ import { Prestamo, Cliente } from '@/lib/types'
 interface DashboardClientesProps {
   prestamos: Prestamo[]
   clientes: Cliente[]
-  tasaVigente: number
 }
 
-export function DashboardClientes({ prestamos, clientes, tasaVigente }: DashboardClientesProps) {
+export function DashboardClientes({ prestamos, clientes }: DashboardClientesProps) {
   const { 
     totalClientes, 
     tasaRecurrencia, 
