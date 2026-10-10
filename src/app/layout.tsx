@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { Toaster } from '@/components/ui/toaster'
 // @ts-ignore: global CSS import declaration not found in type definitions
 import './globals.css'
 
@@ -39,6 +40,7 @@ export default function RootLayout({
     <html lang="es">
       <body className="font-sans antialiased">
         {children}
+        <Toaster />
         <Analytics />
       </body>
     </html>

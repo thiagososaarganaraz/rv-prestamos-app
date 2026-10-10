@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,6 +23,11 @@ import { crearCliente, crearPrestamo, actualizarPrestamo, getTasaVigente } from 
 import { calculateLoanAmounts, formatLoanCurrency, isValidInterestRate } from '@/lib/interest'
 import { Cliente, Prestamo, MetodoPago } from '@/lib/types'
 import { todayStr, oneMonthFromNow } from '@/lib/utils-clientes'
+import { ClientProfileFields } from '@/components/client-profile-fields'
+import { draftPresence, useClientProfile } from '@/hooks/use-client-profile'
+import { missingClientData } from '@/lib/client-profile'
+import { toast } from '@/hooks/use-toast'
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog'
 
 interface PrestamoFormProps {
   open: boolean
@@ -36,7 +42,6 @@ type Paso = 'cliente' | 'prestamo'
 const defaultForm = () => ({
   cliente_id: '',
   nuevoNombre: '',
-  nuevoTelefono: '',
   monto: '',
   tasa_interes: '',
   fecha_prestamo: todayStr(),
@@ -59,12 +64,17 @@ export function PrestamoForm({
   const [isPending, startTransition] = useTransition()
   const rateTouched = useRef(false)
   const [rateNotice, setRateNotice] = useState<string | null>(null)
+  const profile = useClientProfile()
+  const createdClientId = useRef<string | null>(null)
+  const [confirmMissing, setConfirmMissing] = useState(false)
 
   const isEdit = !!prestamoEditar
 
   useEffect(() => {
     let active = true
     if (open) {
+      createdClientId.current = null
+      setConfirmMissing(false)
       setError(null)
       setRateNotice(null)
       rateTouched.current = false
@@ -72,7 +82,6 @@ export function PrestamoForm({
         setForm({
           cliente_id: prestamoEditar.cliente_id,
           nuevoNombre: '',
-          nuevoTelefono: '',
           monto: String(prestamoEditar.monto),
           tasa_interes: String(prestamoEditar.tasa_interes),
           fecha_prestamo: prestamoEditar.fecha_prestamo,
@@ -98,6 +107,13 @@ export function PrestamoForm({
     return () => { active = false }
   }, [open, prestamoEditar, clienteIdFijo])
 
+  useEffect(() => {
+    if (!open || isEdit) return
+    createdClientId.current = null
+    profile.reset(crearNuevoCliente ? undefined : clientes.find((c) => c.id === (clienteIdFijo ?? form.cliente_id)))
+    // No reiniciar al revalidar clientes: conservar borrador y cargas parciales.
+  }, [open, isEdit, clienteIdFijo, form.cliente_id, crearNuevoCliente])
+
   function set(key: keyof ReturnType<typeof defaultForm>, value: string) {
     if (key === 'tasa_interes') rateTouched.current = true
     setForm((f) => ({ ...f, [key]: value }))
@@ -116,7 +132,7 @@ export function PrestamoForm({
     setPaso('prestamo')
   }
 
-  function handleSubmit() {
+  function handleSubmit(confirmed = false) {
     if (!form.monto || !Number.isFinite(Number(form.monto)) || Number(form.monto) <= 0) {
       setError('El monto debe ser un número positivo.')
       return
@@ -129,19 +145,33 @@ export function PrestamoForm({
       setError('La fecha de vencimiento es obligatoria.')
       return
     }
+    if (!isEdit) {
+      if (crearNuevoCliente && !form.nuevoNombre.trim()) { setError('El nombre del cliente es obligatorio.'); return }
+      if (!crearNuevoCliente && !form.cliente_id) { setError('Seleccioná un cliente.'); return }
+      try { profile.values() } catch (e) { setError(e instanceof Error ? e.message : 'Datos del cliente inválidos'); return }
+      if (!confirmed && missingClientData(draftPresence(profile.draft)).length) {
+        setError(null)
+        setConfirmMissing(true)
+        return
+      }
+    }
     setError(null)
 
     startTransition(async () => {
       try {
-        let clienteId = form.cliente_id
+        let clienteId = createdClientId.current ?? form.cliente_id
 
-        if (!isEdit && crearNuevoCliente) {
+        if (!isEdit && crearNuevoCliente && !createdClientId.current) {
           clienteId = await crearCliente({
             nombre: form.nuevoNombre.trim(),
-            telefono: form.nuevoTelefono.trim() || null,
+            telefono: profile.draft.telefono.trim() || null,
+            ...profile.values(),
             notas: null,
           })
+          createdClientId.current = clienteId
         }
+
+        const warnings = !isEdit ? await profile.save(clienteId, crearNuevoCliente ? form.nuevoNombre.trim() : undefined) : []
 
         const payload = {
           cliente_id: clienteId,
@@ -159,9 +189,11 @@ export function PrestamoForm({
           await crearPrestamo(payload)
         }
 
+        const notices = [...profile.notices, ...warnings]
+        if (notices.length) toast({ title: 'Préstamo guardado', description: notices.join(' ') })
         onOpenChange(false)
       } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : 'Error inesperado')
+        setError(`${e instanceof Error ? e.message : 'Error inesperado'}${createdClientId.current ? ' El cliente ya está creado y se reutilizará al reintentar.' : ''}`)
       }
     })
   }
@@ -173,15 +205,16 @@ export function PrestamoForm({
     : null
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(value) => { if (!isPending) onOpenChange(value) }}>
       <DialogContent className="max-w-sm mx-auto max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold">
             {isEdit ? 'Editar préstamo' : 'Nuevo préstamo'}
           </DialogTitle>
+          <DialogDescription>{isEdit ? 'Actualizá los datos del préstamo.' : 'Elegí el cliente, revisá sus datos y completá las condiciones del préstamo.'}</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 pt-1">
+        <fieldset disabled={isPending} className="space-y-4 pt-1 min-w-0">
           {/* PASO 1: CLIENTE */}
           {paso === 'cliente' && !isEdit && !clienteIdFijo && (
             <>
@@ -234,15 +267,6 @@ export function PrestamoForm({
                       placeholder="Nombre completo"
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label>Teléfono (opcional)</Label>
-                    <Input
-                      value={form.nuevoTelefono}
-                      onChange={(e) => set('nuevoTelefono', e.target.value)}
-                      placeholder="809-000-0000"
-                      type="tel"
-                    />
-                  </div>
                 </div>
               )}
 
@@ -257,6 +281,7 @@ export function PrestamoForm({
           {/* PASO 2: PRÉSTAMO */}
           {(paso === 'prestamo' || isEdit || !!clienteIdFijo) && (
             <>
+              {!isEdit && <ClientProfileFields draft={profile.draft} onChange={profile.setDraft} clientId={createdClientId.current ?? (crearNuevoCliente ? undefined : form.cliente_id)} disabled={isPending} />}
               <div className="space-y-1.5">
                 <Label>Capital ($) *</Label>
                 <Input
@@ -351,14 +376,28 @@ export function PrestamoForm({
                     Volver
                   </Button>
                 )}
-                <Button className="flex-1" onClick={handleSubmit} disabled={isPending}>
+                <Button className="flex-1" onClick={() => handleSubmit()} disabled={isPending}>
                   {isPending ? <Spinner className="mr-2" /> : null}
                   {isEdit ? 'Guardar cambios' : 'Crear préstamo'}
                 </Button>
               </div>
             </>
           )}
-        </div>
+          {profile.notices.map((notice, index) => <p key={index} role="status" className="text-sm">{notice}</p>)}
+        </fieldset>
+        <AlertDialog open={confirmMissing} onOpenChange={setConfirmMissing}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Faltan datos recomendados</AlertDialogTitle>
+              <AlertDialogDescription>Podés crear el préstamo y completar estos datos después desde la ficha del cliente.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <ul className="list-disc pl-5 text-sm">{missingClientData(draftPresence(profile.draft)).map((item) => <li key={item}>{item}</li>)}</ul>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Completar datos</AlertDialogCancel>
+              <AlertDialogAction onClick={() => handleSubmit(true)}>Crear préstamo igualmente</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </DialogContent>
     </Dialog>
   )

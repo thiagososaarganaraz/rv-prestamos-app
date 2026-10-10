@@ -10,6 +10,7 @@ import {
   statusDotClasses,
 } from '@/lib/utils-clientes'
 import { ChevronDown, ChevronRight, Phone } from 'lucide-react'
+import { missingClientData } from '@/lib/client-profile'
 
 interface ClienteRowProps {
   cliente: Cliente
@@ -41,6 +42,7 @@ export function ClienteRow({ cliente, prestamos }: ClienteRowProps) {
             </div>
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-foreground truncate">{cliente.nombre}</p>
+              {missingClientData(cliente).length > 0 && <p className="text-xs text-amber-700 dark:text-amber-400">Datos incompletos</p>}
               <div className="flex items-center gap-3 mt-0.5">
                 {cliente.telefono && (
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
