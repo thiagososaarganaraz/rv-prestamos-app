@@ -1,10 +1,22 @@
 export type EstadoPrestamo = 'pendiente' | 'pagado'
 export type MetodoPago = 'efectivo' | 'transferencia'
 
+export type RedSocial = { red: string; usuario: string }
+export type DniSide = 'dni_frente' | 'dni_dorso'
+export type ClienteDatos = {
+  telefono: string | null
+  ocupacion: string | null
+  redes_sociales: RedSocial[]
+}
+
 export interface Cliente {
   id: string
   nombre: string
   telefono: string | null
+  ocupacion: string | null
+  redes_sociales: RedSocial[]
+  dni_frente: string | null
+  dni_dorso: string | null
   notas: string | null
   user_id: string
   created_at: string
@@ -14,6 +26,7 @@ export interface Prestamo {
   id: string
   cliente_id: string
   monto: number
+  tasa_interes: number
   fecha_prestamo: string
   fecha_vencimiento: string
   estado: EstadoPrestamo
@@ -32,6 +45,7 @@ export interface ClienteConPrestamos extends Cliente {
 export type PrestamoFormData = {
   cliente_id: string
   monto: number
+  tasa_interes: number
   fecha_prestamo: string
   fecha_vencimiento: string
   metodo_pago: MetodoPago | null
@@ -42,6 +56,8 @@ export type ClienteFormData = {
   nombre: string
   telefono: string | null
   notas: string | null
+  ocupacion?: string | null
+  redes_sociales?: RedSocial[]
 }
 
 export type FiltroEstado = 'todos' | 'proximos' | 'vencidos' | 'pagados'

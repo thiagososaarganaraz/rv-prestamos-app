@@ -7,11 +7,11 @@ import { format, parseISO } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartContainer } from '@/components/ui/chart'
 import { Prestamo } from '@/lib/types'
+import { calculateLoanAmounts } from '@/lib/interest'
 import { formatCurrency, getStatusPrestamo } from '@/lib/utils-clientes'
 
 interface DashboardFinancieroProps {
   prestamos: Prestamo[]
-  tasaVigente: number
 }
 
 function ExpandableCurrency({ amount }: { amount: number }) {
@@ -37,21 +37,18 @@ function ExpandableCurrency({ amount }: { amount: number }) {
   )
 }
 
-export function DashboardFinanciero({ prestamos, tasaVigente }: DashboardFinancieroProps) {
+export function DashboardFinanciero({ prestamos }: DashboardFinancieroProps) {
   const { capitalColocado, totalGanancias, prestamosActivos, carteraRiesgo, historicoGanancias } = useMemo(() => {
-    // Convertir la tasa porcentual (ej: 40) a decimal (0.40)
-    const tasaDecimal = tasaVigente / 100
-
     const capitalColocado = prestamos
       .filter((p) => p.estado === 'pendiente')
       .reduce((sum, p) => sum + p.monto, 0)
 
     const prestamosActivos = prestamos.filter((p) => p.estado === 'pendiente').length
 
-    // Ganancias = Suma de (monto * interés vigente en decimal) de los préstamos pagados
+    // Ganancias según la tasa guardada de cada préstamo pagado
     const totalGanancias = prestamos
       .filter((p) => p.estado === 'pagado')
-      .reduce((sum, p) => sum + (p.monto * tasaDecimal), 0)
+      .reduce((sum, p) => sum + calculateLoanAmounts(p).interest, 0)
 
     const riesgoMap: Record<string, number> = { verde: 0, amarillo: 0, rojo: 0 }
     prestamos
@@ -72,7 +69,7 @@ export function DashboardFinanciero({ prestamos, tasaVigente }: DashboardFinanci
       .filter((p) => p.estado === 'pagado' && p.fecha_pago)
       .forEach((p) => {
         const mesAño = format(parseISO(p.fecha_pago!), 'MMM yyyy')
-        gananciasPorMes[mesAño] = (gananciasPorMes[mesAño] || 0) + (p.monto * tasaDecimal)
+        gananciasPorMes[mesAño] = (gananciasPorMes[mesAño] || 0) + calculateLoanAmounts(p).interest
       })
 
     const historicoGanancias = Object.entries(gananciasPorMes)
@@ -93,7 +90,7 @@ export function DashboardFinanciero({ prestamos, tasaVigente }: DashboardFinanci
       carteraRiesgo,
       historicoGanancias,
     }
-  }, [prestamos, tasaVigente])
+  }, [prestamos])
 
   const chartConfig = {
     monto: {
@@ -122,7 +119,7 @@ export function DashboardFinanciero({ prestamos, tasaVigente }: DashboardFinanci
         <Card className="py-4 shadow-sm border-border bg-card">
           <CardHeader className="p-0 px-3 pb-1">
             <CardTitle className="text-xs font-semibold text-muted-foreground tracking-tight leading-none">
-              Ganancias ({tasaVigente}%)
+              Ganancias
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0 px-3">

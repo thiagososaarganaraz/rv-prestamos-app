@@ -12,6 +12,7 @@ import { toast } from '@/hooks/use-toast'
 import { formatDate } from '@/lib/utils-clientes'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { isValidInterestRate } from '@/lib/interest'
 
 export default function AjustesPage() {
   const [tasa, setTasa] = useState('')
@@ -23,19 +24,27 @@ export default function AjustesPage() {
 
   useEffect(() => {
     async function load() {
-      const actual = await getTasaVigente()
-      setTasa(String(actual))
+      try {
+        const actual = await getTasaVigente()
+        setTasa(String(actual))
+      } catch {
+        toast({ title: 'Error', description: 'No se pudo cargar la tasa configurada.', variant: 'destructive' })
+      }
     }
     load()
   }, [])
 
   function handleGuardar() {
+    if (!tasa.trim() || !isValidInterestRate(Number(tasa))) {
+      toast({ title: 'Tasa inválida', description: 'Ingresá un porcentaje no negativo con hasta dos decimales.', variant: 'destructive' })
+      return
+    }
     startTransition(async () => {
       try {
         await setNuevaTasa(Number(tasa))
         toast({ title: "Tasa actualizada", description: `Nueva tasa configurada: ${tasa}%` })
       } catch (error) {
-        toast({ title: "Error", description: "No se pudo actualizar la tasa", variant: "destructive" })
+        toast({ title: "Error", description: error instanceof Error ? error.message : "No se pudo actualizar la tasa", variant: "destructive" })
       }
     })
   }
@@ -53,7 +62,7 @@ export default function AjustesPage() {
       <Card>
         <CardHeader>
           <CardTitle>Interés por defecto</CardTitle>
-          <CardDescription>Define el porcentaje que se aplicará en futuros préstamos.</CardDescription>
+          <CardDescription>Define el porcentaje inicial para futuros préstamos. Podés cambiarlo al crear cada préstamo; los préstamos existentes conservan su tasa.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -61,6 +70,8 @@ export default function AjustesPage() {
             <Input 
               id="tasa"
               type="number" 
+              min="0"
+              required
               step="0.01" 
               value={tasa} 
               onChange={(e) => setTasa(e.target.value)}

@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useEffect } from 'react'
 import { Prestamo, Cliente } from '@/lib/types'
+import { calculateLoanAmounts, formatLoanCurrency } from '@/lib/interest'
 import {
   getStatusPrestamo,
   formatCurrency,
@@ -75,6 +76,7 @@ export function PrestamoCard({ prestamo, clientes, showCliente = false }: Presta
 
   // Estilos dinámicos para resaltar préstamos vencidos
   const isVencido = prestamo.estado === 'pendiente' && status.color === 'rojo'
+  const amounts = calculateLoanAmounts(prestamo)
 
   return (
     <>
@@ -86,7 +88,8 @@ export function PrestamoCard({ prestamo, clientes, showCliente = false }: Presta
         <div className="flex justify-between items-start">
           <div>
             {showCliente && <p className="text-sm font-medium text-muted-foreground">{clienteNombre}</p>}
-            <p className="text-3xl font-extrabold tracking-tight">{formatCurrency(prestamo.monto)}</p>
+            <p className="text-xs text-muted-foreground">Capital</p>
+            <p className="text-3xl font-extrabold tracking-tight">{formatLoanCurrency(prestamo.monto)}</p>
           </div>
           <div className="flex items-center gap-2">
             <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider", statusBadgeClasses(status.color))}>
@@ -103,6 +106,11 @@ export function PrestamoCard({ prestamo, clientes, showCliente = false }: Presta
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+        </div>
+
+        <div className="text-sm space-y-1">
+          <p className="text-muted-foreground">Interés ({prestamo.tasa_interes}%): {formatLoanCurrency(amounts.interest)}</p>
+          <p className="font-semibold">Total: {formatLoanCurrency(amounts.total)}</p>
         </div>
 
         {/* Fila de info técnica: Compacta y clara */}

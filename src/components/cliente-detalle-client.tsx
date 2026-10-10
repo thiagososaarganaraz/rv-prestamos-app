@@ -9,6 +9,11 @@ import { formatCurrency } from '@/lib/utils-clientes'
 import { eliminarCliente } from '@/lib/actions'
 import { ArrowLeft, Phone, Plus, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { ClienteEditForm } from '@/components/cliente-edit-form'
+import { DniPreview } from '@/components/client-profile-fields'
+import { Button } from '@/components/ui/button'
+import { DNI_SIDES, missingClientData } from '@/lib/client-profile'
+import { toast } from '@/hooks/use-toast'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +40,10 @@ export function ClienteDetalleClient({
   const [newPrestamoOpen, setNewPrestamoOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [editOpen, setEditOpen] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const missing = missingClientData(cliente)
 
   const activos = prestamos.filter((p) => p.estado === 'pendiente')
   const pagados = prestamos.filter((p) => p.estado === 'pagado')
@@ -42,8 +51,14 @@ export function ClienteDetalleClient({
 
   function handleEliminarCliente() {
     startTransition(async () => {
-      await eliminarCliente(cliente.id)
-      router.push('/dashboard')
+      setDeleteError(null)
+      try {
+        const result = await eliminarCliente(cliente.id)
+        if (result.warning) toast({ title: 'Cliente eliminado', description: result.warning })
+        router.push('/dashboard')
+      } catch (e) {
+        setDeleteError(e instanceof Error ? e.message : 'No se pudo eliminar el cliente.')
+      }
     })
   }
 
@@ -76,6 +91,16 @@ export function ClienteDetalleClient({
       </header>
 
       <main className="flex-1 px-4 pb-28 pt-4 space-y-5">
+        <section className="rounded-xl border bg-card p-4 space-y-3">
+          <div className="flex items-center justify-between gap-2"><h2 className="font-semibold">Datos del cliente</h2><Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>Editar datos</Button></div>
+          {notice && <p role="status" className="text-sm">{notice}</p>}
+          {deleteError && <p role="alert" className="text-sm text-destructive">{deleteError}</p>}
+          <p className="text-sm">Teléfono: {cliente.telefono || 'Sin completar'}</p>
+          <p className="text-sm">Ocupación: {cliente.ocupacion || 'Sin completar'}</p>
+          <div className="text-sm"><p className="font-medium">Redes sociales</p>{cliente.redes_sociales?.length ? <ul className="space-y-1">{cliente.redes_sociales.map((r, index) => <li className="break-words" key={index}>{r.red}: {r.usuario}</li>)}</ul> : <p>Sin completar</p>}</div>
+          {DNI_SIDES.map((side) => cliente[side] ? <DniPreview key={`${side}-${cliente[side]}`} clientId={cliente.id} side={side} /> : <p key={side} className="text-sm">DNI {side === 'dni_frente' ? 'frente' : 'dorso'}: sin completar</p>)}
+          {missing.length > 0 && <div role="status" className="text-sm text-amber-700 dark:text-amber-400"><p className="font-medium">Datos incompletos</p><p>Pendientes: {missing.join(', ')}.</p></div>}
+        </section>
         {/* Summary */}
         <div className="grid grid-cols-3 gap-2">
           <div className="bg-card rounded-xl border border-border p-3 text-center">
@@ -151,6 +176,8 @@ export function ClienteDetalleClient({
         clientes={clientes}
         clienteIdFijo={cliente.id}
       />
+
+      <ClienteEditForm cliente={cliente} open={editOpen} onOpenChange={setEditOpen} onNotice={setNotice} />
 
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
