@@ -4,6 +4,7 @@ import { useEffect, useId, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { DniImageViewer } from '@/components/dni-image-viewer'
 import type { ClientProfileDraft, PhotoDraft } from '@/hooks/use-client-profile'
 import { draftPresence } from '@/hooks/use-client-profile'
 import { DNI_SIDES, missingClientData, validateDniFile } from '@/lib/client-profile'
@@ -30,7 +31,7 @@ export function DniPreview({ clientId, side }: { clientId: string; side: DniSide
     <Button type="button" variant="outline" size="sm" disabled={loading} onClick={() => url ? setUrl(null) : void show()}>
       {loading ? 'Abriendo…' : url ? 'Ocultar foto' : `Ver ${side === 'dni_frente' ? 'frente' : 'dorso'} del DNI`}
     </Button>
-    {url && <img src={url} alt={`DNI ${side === 'dni_frente' ? 'frente' : 'dorso'}`} className="max-h-64 rounded border object-contain" onError={() => { setUrl(null); setError('La imagen no pudo cargarse. Intentá abrirla nuevamente.') }} />}
+    {url && <DniImageViewer key={url} src={url} alt={`DNI ${side === 'dni_frente' ? 'frente' : 'dorso'}`} className="max-h-64 max-w-full rounded border object-contain" onError={() => { setUrl(null); setError('La imagen no pudo cargarse. Intentá abrirla nuevamente.') }} />}
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
   </div>
 }
@@ -47,17 +48,19 @@ function PhotoField({ side, photo, onChange, clientId }: { side: DniSide; photo:
   }, [photo.file])
   return <div className="space-y-2 rounded-lg border p-3">
     <Label htmlFor={id}>{side === 'dni_frente' ? 'Frente' : 'Dorso'} del DNI (recomendado)</Label>
-    <Input id={id} type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => {
+    <Input id={id} type="file" accept="image/jpeg,image/png,image/webp"
+      className="h-10 p-1 file:mr-3 file:h-8 file:cursor-pointer file:rounded-md file:bg-primary file:px-3 file:py-2 file:text-primary-foreground file:transition-colors file:hover:bg-primary/90 disabled:file:cursor-not-allowed dark:file:bg-[oklch(0.48_0.18_250)] dark:file:text-white dark:file:hover:bg-[oklch(0.48_0.18_250_/_90%)]"
+      onChange={(event) => {
       const file = event.target.files?.[0]
       event.target.value = ''
       if (!file) return
       try { validateDniFile(file); setError(null); onChange({ ...photo, file, remove: false }) }
       catch (e) { setError(e instanceof Error ? e.message : 'Archivo inválido') }
     }} />
-    {preview && <img src={preview} alt={`Vista previa del ${side === 'dni_frente' ? 'frente' : 'dorso'} del DNI`} className="max-h-40 rounded object-contain" />}
+    {preview && <DniImageViewer key={preview} src={preview} alt={`Vista previa del ${side === 'dni_frente' ? 'frente' : 'dorso'} del DNI`} className="max-h-40 max-w-full rounded object-contain" onError={() => setError('No se pudo cargar la vista previa. Intentá seleccionar la foto nuevamente.')} />}
     {!photo.file && photo.path && !photo.remove && clientId && <DniPreview key={photo.path} clientId={clientId} side={side} />}
     {photo.remove && <p className="text-sm">La foto se quitará al guardar.</p>}
-    {(photo.file || (photo.path && !photo.remove)) && <Button type="button" variant="outline" size="sm" onClick={() => { setError(null); onChange({ path: photo.path, file: null, remove: !!photo.path }) }}>Quitar foto</Button>}
+    {(photo.file || (photo.path && !photo.remove)) && <Button type="button" variant="outline" size="sm" onClick={() => { setError(null); onChange({ path: photo.path, file: null, remove: !!photo.path }) }}>Eliminar foto</Button>}
     {photo.path && (photo.file || photo.remove) && <Button type="button" variant="ghost" size="sm" onClick={() => { setError(null); onChange({ path: photo.path, file: null, remove: false }) }}>Conservar foto guardada</Button>}
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
   </div>
